@@ -51,8 +51,8 @@ describe('Pruebas de integración', () => {
             'polinomios',
             'estadistica'
         ];
+        expect(new Set(categoriasEsperadas).size).toBe(categoriasEsperadas.length);
         const claves = Object.keys(module.default);
         expect(claves).toEqual(expect.arrayContaining(categoriasEsperadas));
-        expect(new Set(claves).size).toBe(claves.length);
     });
 });
