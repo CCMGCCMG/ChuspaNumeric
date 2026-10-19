@@ -134,6 +134,71 @@ git push origin tipo/descripcion-corta
 4. Edita la descripción y el título del PR según los cambios que hayas realizado sin olvidarte de agregar al `Closes #` el numero del Issue que realizaste.
 ---
 
+## Contrato de retorno de los métodos numéricos
+
+Todo método numérico del proyecto debe devolver su resultado con la **misma estructura**. Así, cualquier archivo, prueba o herramienta (CLI, exportación) puede leer los resultados sin conocer los detalles de cada método.
+
+Para lograrlo, usa las dos funciones de `src/core/contrato.js`:
+
+| Función | Qué hace |
+|---|---|
+| `crearResultado({ ... })` | Construye el objeto de resultado uniforme |
+| `medirTiempo(fn)` | Ejecuta `fn` y devuelve `{ valor, tiempo_ms }` |
+
+> ⚠️ **Es obligatorio** para todo método numérico nuevo: debe retornar con `crearResultado` y medir su tiempo con `medirTiempo`. No retornes números, arreglos u objetos con una estructura propia.
+
+### Estructura del objeto devuelto
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `resultado` | `number`, `Array` o `null` | Valor calculado por el método |
+| `iteraciones` | `Array` (por defecto `[]`) | Detalle de cada paso del método |
+| `convergio` | `boolean` (por defecto `false`) | Indica si el método alcanzó su criterio de parada |
+| `mensaje` | `string` (por defecto `""`) | Descripción legible del resultado |
+| `meta.metodo` | `string` | Nombre del método (ej. `"trapecio"`) |
+| `meta.parametros` | `Object` | Parámetros con los que se ejecutó el método |
+| `meta.tiempo_ms` | `number` | Tiempo de ejecución en milisegundos (lo entrega `medirTiempo`) |
+| `warnings` | `string[]` (opcional) | Advertencias no bloqueantes. Solo aparece si hay alguna |
+
+### Ejemplo mínimo
+
+Versión simplificada de `src/integracion/trapecio.js`, que sigue el contrato completo:
+
+```js
+import { crearResultado, medirTiempo } from "../core/contrato.js";
+
+function trapecio({ f, a, b, n = 100 }) {
+  // 1. Validaciones (validarFuncion, validarIntervalo, ...)
+
+  // 2. Cálculo, medido con medirTiempo
+  const { valor, tiempo_ms } = medirTiempo(() => {
+    // ... calcular `resultado` e `iteraciones` ...
+    return { resultado, iteraciones };
+  });
+
+  // 3. Retornar usando el contrato de Trazo
+  return crearResultado({
+    resultado: valor.resultado,
+    iteraciones: valor.iteraciones,
+    convergio: true,
+    mensaje: `Integración por regla del trapecio con ${n} subintervalos.`,
+    meta: {
+      metodo: "trapecio",
+      parametros: { f, a, b, n },
+      tiempo_ms,
+    },
+  });
+}
+```
+
+Puntos clave:
+- Importa ambas funciones desde `core/contrato.js` (ajusta la ruta relativa según la carpeta de tu método).
+- Envuelve **solo el cálculo** en `medirTiempo` y pasa el `tiempo_ms` obtenido a `meta`.
+- Siempre llena `meta.metodo` y `meta.parametros`.
+- Retorna **siempre** con `crearResultado`, nunca una estructura distinta.
+
+---
+
 ## Convención de commits
 
 | Tipo | Cuándo usarlo |
@@ -159,6 +224,23 @@ chore: configurar GitHub Actions para CI
 ## Nomenclatura de directorios y archivos
 
 Este proyecto usa español como idioma estándar para la estructura de carpetas. Crear directorios con nombres en inglés (como integration, linearAlgebra o math) es un error frecuente que será rechazado en el PR.
+
+### Convención para nombres de archivos en `src/`
+
+Al crear un archivo nuevo dentro de `src/`, usa **kebab-case**: escribe el nombre en minúsculas y separa las palabras con guiones medios (`-`).
+
+Ejemplos:
+
+- ✅ `punto-fijo.js`
+- ✅ `gauss-seidel.js`
+- ❌ `punto_fijo.js`
+- ❌ `gaussSeidel.js`
+
+Antes de agregar un método nuevo, revisa si ya existe una implementación en `src/`. Busca también nombres parecidos o escritos con otra convención. Si el método ya existe, trabaja sobre ese archivo en lugar de crear otro duplicado.
+
+Esta regla se aplica únicamente a los nombres de archivo. Las funciones y los parámetros deben seguir usando **camelCase**, como se explica en `docs/convenciones-nombres-funciones.md`.
+
+No es necesario renombrar los archivos existentes que todavía usan guion bajo; esos casos pueden corregirse por separado.
 
 **Directorios canónicos bajo src/**
 
