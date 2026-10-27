@@ -179,3 +179,38 @@ export function divisionComplejos(z1, z2) {
     im: (z1.im * z2.re - z1.re * z2.im) / denominador,
   };
 }
+
+/**
+ * Resta dos números complejos: (a + bi) - (c + di) = (a-c) + (b-d)i
+ *
+ * @param {{ re: number, im: number }} z1 - Minuendo.
+ * @param {{ re: number, im: number }} z2 - Sustraendo.
+ * @returns {{ re: number, im: number }} La resta z1 - z2.
+ * @throws {ErrorParametros} Si algún operando no es un complejo válido.
+ *
+ * @example
+ * restaComplejos({ re: 5, im: 4 }, { re: 2, im: 1 });
+ * // { re: 3, im: 3 }
+ */
+export function restaComplejos(z1, z2) {
+  _validarComplejo(z1, 'z1');
+  _validarComplejo(z2, 'z2');
+  return { re: z1.re - z2.re, im: z1.im - z2.im };
+}
+
+/**
+ * Calcula el argumento (ángulo polar en radianes) de un número complejo:
+ * arg(a + bi) = atan2(b, a), en el intervalo [-π, π].
+ *
+ * @param {{ re: number, im: number }} z - El número complejo.
+ * @returns {number} El argumento de z en radianes.
+ * @throws {ErrorParametros} Si z no es un complejo válido.
+ *
+ * @example
+ * argumentoComplejo({ re: 0, im: 1 });   // Math.PI / 2
+ * argumentoComplejo({ re: -1, im: 0 });  // Math.PI
+ */
+export function argumentoComplejo(z) {
+  _validarComplejo(z, 'z');
+  return Math.atan2(z.im, z.re);
+}
