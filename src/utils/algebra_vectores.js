@@ -120,3 +120,41 @@ export function escalarPorVector(escalar, v) {
 
   return v.map((valor) => escalar * valor);
 }
+
+/**
+ * Calcula la distancia euclidiana entre dos puntos (la norma de su diferencia).
+ *
+ * @example
+ * distanciaEuclidiana([1, 2], [4, 6]) // 5
+ */
+export function distanciaEuclidiana(v1, v2) {
+  return magnitudVector(restaVectores(v1, v2));
+}
+
+/**
+ * Calcula el ángulo en radianes entre dos vectores de la misma dimensión.
+ *
+ * El coseno se acota a [-1, 1] para evitar valores fuera de dominio por errores
+ * de redondeo. Lanza ErrorParametros si alguno de los vectores tiene magnitud cero.
+ *
+ * @example
+ * anguloEntreVectores([1, 0], [0, 1]) // Math.PI / 2
+ */
+export function anguloEntreVectores(v1, v2) {
+  validarVector(v1, 'v1');
+  validarVector(v2, 'v2');
+  validarMismaDimension(v1, v2);
+
+  const magnitud1 = magnitudVector(v1);
+  const magnitud2 = magnitudVector(v2);
+
+  if (magnitud1 === 0 || magnitud2 === 0) {
+    throw new ErrorParametros(
+      'Trazo.algebraVectores: no se puede calcular el ángulo con un vector de magnitud cero.'
+    );
+  }
+
+  const coseno = productoPunto(v1, v2) / (magnitud1 * magnitud2);
+
+  return Math.acos(Math.min(1, Math.max(-1, coseno)));
+}
